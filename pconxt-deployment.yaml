@@ -22,12 +22,12 @@ spec:
           image: styxut/pconxt:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 8080
+            - containerPort: 8808
               name: http
               protocol: TCP
           env:
             - name: PCONXT_HTTP_ADDR
-              value: ":8080"
+              value: ":8808"
             - name: PCONXT_CONSOLE_LOG_LEVEL
               value: trace
             - name: PCONXT_POSTGRES_LOG_LEVEL

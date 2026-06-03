@@ -56,7 +56,7 @@ kubectl get pods -l app=pconxt
 kubectl get svc pconxt
 ```
 
-The health endpoints should be reachable on any of the configured `externalIPs` at port `8080`:
+The health endpoints should be reachable on any of the configured `externalIPs` at port `8808`:
 - `/health/live`
 - `/health/ready`
 
@@ -74,7 +74,7 @@ Runtime configuration is provided through environment variables in `pconxt-deplo
 
 | Variable | Default | Description |
 |---|---|---|
-| `PCONXT_HTTP_ADDR` | `:8080` | HTTP server bind address |
+| `PCONXT_HTTP_ADDR` | `:8808` | HTTP server bind address |
 | `PCONXT_CONSOLE_LOG_LEVEL` | `debug` | Console log level |
 | `PCONXT_POSTGRES_LOG_LEVEL` | `warn` | PostgreSQL log level |
 | `PCONXT_ENV` | `development` | Deployment environment |
