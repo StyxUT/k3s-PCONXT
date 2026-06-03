@@ -70,21 +70,38 @@ kubectl delete -k .
 
 ### Environment variables
 
-Runtime configuration is provided through environment variables in `pconxt-deployment.yaml`. Key variables include:
+All runtime configuration is provided through environment variables. Variables with a documented default are optional. Variables without a default are optional (the corresponding feature is disabled when unset) unless marked **Required**.
 
-| Variable | Default | Description |
-|---|---|---|
-| `PCONXT_HTTP_ADDR` | `:8808` | HTTP server bind address |
-| `PCONXT_CONSOLE_LOG_LEVEL` | `debug` | Console log level |
-| `PCONXT_POSTGRES_LOG_LEVEL` | `warn` | PostgreSQL log level |
-| `PCONXT_ENV` | `development` | Deployment environment |
-| `PCONXT_POSTGRES_DSN` | *(secret)* | PostgreSQL connection string |
-| `PCONXT_TESLA_VEHICLE_SEED_JSON` | *(secret)* | JSON vehicle-to-VIN mappings |
-| `PCONXT_MQTT_HOST` | *(empty)* | Tesla BLE MQTT broker hostname |
-| `PCONXT_MQTT_PORT` | `1883` | MQTT broker port |
-| `PCONXT_FORECAST_SLEEP_ENABLED` | `false` | Enable forecast-driven sleep mode |
+Sensitive values (`PCONXT_POSTGRES_DSN`, `PCONXT_TESLA_VEHICLE_SEED_JSON`, `PCONXT_API_BEARER_TOKEN_FILE`) should be sourced from the `pconxt-secret` Kubernetes Secret rather than set directly in the Deployment manifest.
 
-Sensitive values (`PCONXT_POSTGRES_DSN`, `PCONXT_TESLA_VEHICLE_SEED_JSON`) are sourced from the `pconxt-secret` Kubernetes Secret, generated from files in `secrets/`.
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `PCONXT_HTTP_ADDR` | — | `:8080` | HTTP server bind address (e.g. `:8808`) |
+| `PCONXT_ENV` | — | `development` | Deployment environment (`development` or `production`) |
+| `PCONXT_CONSOLE_LOG_LEVEL` | — | `debug` | Console log level (`trace`, `debug`, `info`, `warn`, `error`) |
+| `PCONXT_POSTGRES_LOG_LEVEL` | — | `warn` | PostgreSQL log level (`trace`, `debug`, `info`, `warn`, `error`) |
+| `PCONXT_TIME_ZONE` | — | `America/Denver` | IANA time zone name for the application runtime |
+| `PCONXT_POSTGRES_DSN` | No¹ | — | PostgreSQL connection string (`postgres://` or `postgresql://` URI). When unset, persistence is disabled and the application runs in local-only mode. |
+| `PCONXT_API_BEARER_TOKEN_FILE` | — | — | Path to a mounted file containing the API bearer token. When unset, API authentication is disabled. |
+| `PCONXT_POWER_METRICS_URL` | — | — | HTTPS endpoint for solar/power telemetry polling. When unset, the poller is disabled. |
+| `PCONXT_POWER_METRICS_POLL_INTERVAL` | — | `60s` | Power metrics poll interval (Go duration, e.g. `30s`, `65s`). Valid range: `5s`–`5m`. |
+| `PCONXT_POWER_METRICS_STALE_AFTER` | — | `2 × poll interval` | How old a snapshot may be before it is reported stale. Must be at least the poll interval and at most `30m`. |
+| `PCONXT_TESLA_VEHICLE_SEED_JSON` | — | — | JSON array of vehicle-to-VIN mappings: `[{"name":"myCar","vin":"..."}]`. When unset or empty, Tesla vehicle mapping is disabled. |
+| `PCONXT_TESLA_ACTIVE_POLL_INTERVAL` | — | `60s` | How often to poll Tesla charge state during active charging. Must be between `60s`–`10m` and a multiple of `30s`. |
+| `PCONXT_TESLA_STALE_RECOVERY_INTERVAL` | — | `6h` | How often to perform stale-data recovery refresh. Must be a whole-second duration between `1h`–`24h`. |
+| `PCONXT_TESLA_WAKE_SETTLE_DELAY` | — | `60s` | Delay between wake and read-state-charge during stale-data recovery. Must be a whole-second duration between `10s`–`2m`. |
+| `PCONXT_MQTT_HOST` | — | — | Tesla BLE MQTT broker hostname (no scheme, port, or path). When unset, MQTT is disabled. |
+| `PCONXT_MQTT_PORT` | — | `1883` | MQTT broker port. Valid range: `1`–`65535`. |
+| `PCONXT_MQTT_CLIENT_ID` | — | `PCONXT-TeslaBLE-1` | Stable MQTT client identifier. Must not be empty. |
+| `PCONXT_MQTT_TLS_MODE` | — | `disabled` | MQTT transport security (`disabled` or `enabled`). |
+| `PCONXT_MQTT_USERNAME_SECRET_REF` | — | — | MQTT username secret reference. Must be paired with `PCONXT_MQTT_PASSWORD_SECRET_REF`. When both are unset, MQTT uses no authentication. |
+| `PCONXT_MQTT_PASSWORD_SECRET_REF` | — | — | MQTT password secret reference. Must be paired with `PCONXT_MQTT_USERNAME_SECRET_REF`. |
+| `PCONXT_FORECAST_SLEEP_ENABLED` | — | `false` | Master switch for forecast-driven sleep mode (`true` or `false`). |
+| `PCONXT_FORECAST_SLEEP_BASE_URL` | — | — | HTTP endpoint for the solar irradiance forecast service. Only `http://` is supported in v1; `https://` makes the feature unavailable. |
+| `PCONXT_FORECAST_SLEEP_AM_IRRADIANCE_THRESHOLD` | — | `800` | AM solar irradiance cutoff in W/m². Must be a positive integer. |
+| `PCONXT_FORECAST_SLEEP_PM_IRRADIANCE_THRESHOLD` | — | `800` | PM solar irradiance cutoff in W/m². Must be a positive integer. |
+
+¹ `PCONXT_POSTGRES_DSN` is required for durable persistence (policy storage, migration tracking). The application runs without it but features that require persistence will be degraded or unavailable.
 
 ### Probes
 

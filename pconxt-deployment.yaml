@@ -54,6 +54,10 @@ spec:
               value: mqtt.home
             - name: PCONXT_MQTT_PORT
               value: "1883"
+            - name: PCONXT_MQTT_USER
+              value: ""
+            - name: PCONXT_MQTT_PASSWORD
+              value: ""
             - name: PCONXT_MQTT_CLIENT_ID
               value: PCONXT-TeslaBLE-1
             - name: PCONXT_MQTT_TLS_MODE
@@ -66,6 +70,8 @@ spec:
               value: "200"
             - name: PCONXT_FORECAST_SLEEP_PM_IRRADIANCE_THRESHOLD
               value: "800"
+            - name: PCONXT_TIME_ZONE
+              value: "America/Denver" 
           livenessProbe:
             httpGet:
               path: /health/live
