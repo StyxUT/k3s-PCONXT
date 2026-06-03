@@ -55,9 +55,15 @@ spec:
             - name: PCONXT_MQTT_PORT
               value: "1883"
             - name: PCONXT_MQTT_USER
-              value: ""
+              valueFrom:
+                secretKeyRef:
+                  name: pconxt-secret
+                  key: PCONXT_MQTT_USER
             - name: PCONXT_MQTT_PASSWORD
-              value: ""
+              valueFrom:
+                secretKeyRef:
+                  name: pconxt-secret
+                  key: PCONXT_MQTT_PASSWORD
             - name: PCONXT_MQTT_CLIENT_ID
               value: PCONXT-TeslaBLE-1
             - name: PCONXT_MQTT_TLS_MODE

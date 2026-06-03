@@ -30,6 +30,10 @@ Create the secret files in the `secrets/` directory:
 ```bash
 echo -n 'postgres://user:pass@host:5432/db?sslmode=disable' > secrets/postgres_dsn.txt
 echo -n '[{"name":"myCar","vin":"..."}]' > secrets/tesla_vehicle_seed.json
+
+# MQTT credentials — leave empty if no authentication is required
+touch secrets/mqtt_user.txt
+touch secrets/mqtt_password.txt
 ```
 
 > The `secrets/` directory is gitignored and will never be committed.

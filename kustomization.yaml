@@ -9,5 +9,7 @@ secretGenerator:
     files:
       - PCONXT_POSTGRES_DSN=./secrets/postgres_dsn.txt
       - PCONXT_TESLA_VEHICLE_SEED_JSON=./secrets/tesla_vehicle_seed.json
+      - PCONXT_MQTT_USER=./secrets/mqtt_user.txt
+      - PCONXT_MQTT_PASSWORD=./secrets/mqtt_password.txt
 generatorOptions:
   disableNameSuffixHash: true
