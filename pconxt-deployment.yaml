@@ -1,0 +1,92 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pconxt
+  labels:
+    app: pconxt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pconxt
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: pconxt
+    spec:
+      containers:
+        - name: pconxt
+          image: styxut/pconxt:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          env:
+            - name: PCONXT_HTTP_ADDR
+              value: ":8080"
+            - name: PCONXT_CONSOLE_LOG_LEVEL
+              value: trace
+            - name: PCONXT_POSTGRES_LOG_LEVEL
+              value: warn
+            - name: PCONXT_ENV
+              value: development
+            - name: PCONXT_POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: pconxt-secret
+                  key: PCONXT_POSTGRES_DSN
+            - name: PCONXT_POWER_METRICS_URL
+              value: https://enphase.styxut.net/powermetrics
+            - name: PCONXT_POWER_METRICS_POLL_INTERVAL
+              value: 65s
+            - name: PCONXT_POWER_METRICS_STALE_AFTER
+              value: 2m10s
+            - name: PCONXT_TESLA_VEHICLE_SEED_JSON
+              valueFrom:
+                secretKeyRef:
+                  name: pconxt-secret
+                  key: PCONXT_TESLA_VEHICLE_SEED_JSON
+            - name: PCONXT_MQTT_HOST
+              value: mqtt.home
+            - name: PCONXT_MQTT_PORT
+              value: "1883"
+            - name: PCONXT_MQTT_CLIENT_ID
+              value: PCONXT-TeslaBLE-1
+            - name: PCONXT_MQTT_TLS_MODE
+              value: disabled
+            - name: PCONXT_FORECAST_SLEEP_ENABLED
+              value: "true"
+            - name: PCONXT_FORECAST_SLEEP_BASE_URL
+              value: http://forecast.home:8980
+            - name: PCONXT_FORECAST_SLEEP_AM_IRRADIANCE_THRESHOLD
+              value: "200"
+            - name: PCONXT_FORECAST_SLEEP_PM_IRRADIANCE_THRESHOLD
+              value: "800"
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: k8s-pv02
+              mountPath: /data
+              subPath: pconxt/data
+      volumes:
+        - name: k8s-pv02
+          persistentVolumeClaim:
+            claimName: synology-k8s-pv02

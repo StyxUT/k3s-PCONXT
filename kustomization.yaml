@@ -1,0 +1,13 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - pconxt-deployment.yaml
+  - pconxt-svc.yaml
+secretGenerator:
+  - name: pconxt-secret
+    files:
+      - PCONXT_POSTGRES_DSN=./secrets/postgres_dsn.txt
+      - PCONXT_TESLA_VEHICLE_SEED_JSON=./secrets/tesla_vehicle_seed.json
+generatorOptions:
+  disableNameSuffixHash: true
