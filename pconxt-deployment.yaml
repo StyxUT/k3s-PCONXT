@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pconxt
+  namespace: default
   labels:
     app: pconxt
 spec:
@@ -17,17 +18,28 @@ spec:
       labels:
         app: pconxt
     spec:
+      terminationGracePeriodSeconds: 45
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: pconxt
-          image: styxut/pconxt:latest
-          imagePullPolicy: Always
+          image: styxut/pconxt:git-537a852f8162
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
           ports:
-            - containerPort: 8808
+            - containerPort: 8866
               name: http
               protocol: TCP
           env:
             - name: PCONXT_HTTP_ADDR
-              value: ":8808"
+              value: ":8866"
             - name: PCONXT_CONSOLE_LOG_LEVEL
               value: trace
             - name: PCONXT_POSTGRES_LOG_LEVEL
@@ -50,6 +62,16 @@ spec:
                 secretKeyRef:
                   name: pconxt-secret
                   key: PCONXT_TESLA_VEHICLE_SEED_JSON
+            - name: PCONXT_VENSTAR_THERMOSTAT_SEED_JSON
+              value: '[{"name":"Venstar Thermostat","endpointURL":"http://192.168.107.70","lowerComfortBoundF":69,"upperComfortBoundF":77,"expectedCoolingDrawWatts":3800}]'
+            - name: PCONXT_THERMOSTAT_COOLING_SIGMOID_T
+              value: "0.25"
+            - name: PCONXT_THERMOSTAT_COOLING_SIGMOID_K
+              value: "1"
+            - name: PCONXT_VEHICLE_CHARGING_SIGMOID_T
+              value: "1"
+            - name: PCONXT_VEHICLE_CHARGING_SIGMOID_K
+              value: "1"
             - name: PCONXT_MQTT_HOST
               value: mqtt.home
             - name: PCONXT_MQTT_PORT
@@ -68,37 +90,42 @@ spec:
               value: PCONXT-TeslaBLE-1
             - name: PCONXT_MQTT_TLS_MODE
               value: disabled
+            - name: PCONXT_VENSTAR_TRUSTED_CIDRS
+              value: '["192.168.107.70/32"]'
             - name: PCONXT_FORECAST_SLEEP_ENABLED
               value: "true"
             - name: PCONXT_FORECAST_SLEEP_BASE_URL
               value: http://forecast.home:8980
             - name: PCONXT_FORECAST_SLEEP_AM_IRRADIANCE_THRESHOLD
-              value: "200"
+              value: "100"
             - name: PCONXT_FORECAST_SLEEP_PM_IRRADIANCE_THRESHOLD
-              value: "800"
+              value: "600"
             - name: PCONXT_TIME_ZONE
               value: "America/Denver" 
+          startupProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 24
           livenessProbe:
             httpGet:
               path: /health/live
               port: http
-            initialDelaySeconds: 10
             periodSeconds: 30
-            timeoutSeconds: 5
+            timeoutSeconds: 2
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /health/ready
               port: http
-            initialDelaySeconds: 5
-            periodSeconds: 15
-            timeoutSeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
             failureThreshold: 3
-          volumeMounts:
-            - name: k8s-pv02
-              mountPath: /data
-              subPath: pconxt/data
-      volumes:
-        - name: k8s-pv02
-          persistentVolumeClaim:
-            claimName: synology-k8s-pv02
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
