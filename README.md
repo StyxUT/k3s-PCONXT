@@ -10,7 +10,7 @@ This project provides the Kubernetes resources needed to run PCONXT — a Go app
 
 | File | Kind | Description |
 |------|------|-------------|
-| `pconxt-deployment.yaml` | `Deployment` | Single-replica deployment of `styxut/pconxt:git-537a852f8162` in the `default` namespace. Uses a `Recreate` strategy, listens on port `8866`, and configures startup, liveness, and readiness probes. |
+| `pconxt-deployment.yaml` | `Deployment` | Single-replica deployment of `styxut/pconxt:0.1.2` in the `default` namespace. Uses a `Recreate` strategy, listens on port `8866`, and configures startup, liveness, and readiness probes. |
 | `pconxt-svc.yaml` | `Service` | Exposes port `8866` through a `ClusterIP` Service and the available cluster-node IPs for HAProxy. |
 | `kustomization.yaml` | `Kustomization` | Kustomize overlay that bundles the Deployment and Service, generates the `pconxt-secret` from files in `secrets/`, and disables the name-suffix hash. |
 | `pconxt.env.example` | Example configuration | Sanitized reference containing every application setting represented by the live Deployment. |
